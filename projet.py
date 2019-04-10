@@ -5,6 +5,7 @@ Created on Wed Apr 10 21:30:21 2019
 @author: alex0
 """
 
+#lis le fichier basiquement
 def lecture_fichier(filename,nb):
     data = np.loadtxt ( filename, delimiter='\n', dtype=np.str )
     result=[]
@@ -14,6 +15,7 @@ def lecture_fichier(filename,nb):
         result.append(ligne)
     return result
 
+#prend le resultat du fichier et le transforme en deux listes
 def separerH_V(liste):
     H=[]
     V=[]
@@ -25,7 +27,7 @@ def separerH_V(liste):
     return H,V
 
       
-
+#prend deux listes et en fait un ordre simple
 def ordreSimple(H,V):
     result=[]
     taille = len(H)+int(len(V)/2)
@@ -35,6 +37,11 @@ def ordreSimple(H,V):
     for i in range(len(V)/2):
         result.append([V[i],V[i+1]])
     return result
+
+
+#transforme une liste solution en un fichier solution
+#format de la liste solution :
+#[nb_diapo,[1,2],[3],[4,5],[6,7],[8]] par exemple
 
 def transfo(result):
     fichier = open("result.txt", "w")
