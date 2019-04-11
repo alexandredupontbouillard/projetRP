@@ -5,6 +5,8 @@ Created on Wed Apr 10 21:30:21 2019
 @author: alex0
 """
 
+import numpy as np
+
 #lis le fichier basiquement
 def lecture_fichier(filename,nb):
     data = np.loadtxt ( filename, delimiter='\n', dtype=np.str )
@@ -35,7 +37,7 @@ def ordreSimple(H,V):
     for i in H:
         result.append([i[0]])
     for i in range(len(V)/2):
-        result.append([V[i],V[i+1]])
+        result.append([V[i][0],V[i+1][0]])
     return result
 
 
@@ -54,6 +56,10 @@ def transfo(result):
         fichier.write("\n")
     fichier.close()
 
-
+H,V = separerH_V(lecture_fichier("a_example.txt",100))
+print(H,V)
+T = ordreSimple(H,V)
+print(T)
+transfo(T)
     
         
