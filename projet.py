@@ -6,7 +6,8 @@ Created on Wed Apr 10 21:30:21 2019
 """
 
 import numpy as np
-
+import os
+import commands;
 #lis le fichier basiquement
 def lecture_fichier(filename,nb):
     data = np.loadtxt ( filename, delimiter='\n', dtype=np.str )
@@ -56,10 +57,17 @@ def transfo(result):
         fichier.write("\n")
     fichier.close()
 
-H,V = separerH_V(lecture_fichier("a_example.txt",100))
-print(H,V)
-T = ordreSimple(H,V)
-print(T)
-transfo(T)
+def evaluation(fichier,result,proportion):
+	transfo(result)
+	t=commands.getoutput("./Checker "+fichier+" "+str(proportion)+" result.txt")
+	i = 0	
+	while(t[i] != "="):
+		i=i+1
+	return int(t[i+2:])
     
-        
+filename = "b_lovely_landscapes.txt"
+nb = 10
+H,V = separerH_V(lecture_fichier(filename,nb))
+result = ordreSimple(H,V)
+print(evaluation(filename,result,nb))
+
