@@ -94,7 +94,9 @@ def glouton(H,V):
 	taille = len(H)+len(V)/2
 	H1 = copy.deepcopy(H)
 	V1 = 	copy.deepcopy(V)
-	HouV = r.randint(1,2)
+	HouV=1
+	if(len(V)>2):
+		HouV = r.randint(1,2)
 	result=[taille]
 	if(HouV == 1):
 		n=r.randint(0,len(H))
@@ -165,15 +167,87 @@ def glouton(H,V):
 	if(len(V1)==1):
 		result.append([V[0][0]])
 	return result
+
+#on fait des couples aléatoires d'image verticales puis on ajoute au fur et à mesure les images
+def glouton2(H,V):
+	taille = len(H)+len(V)/2 
+	H1 = copy.deepcopy(H)
+	V1 = 	copy.deepcopy(V)
+	HouV=1
+	if(len(V)>2):
+		HouV = r.randint(1,2)
+	result=[taille]
+	if(HouV == 1):
+		n=r.randint(0,len(H))
+		result.append([H[n][0]])
+		del(H1[n])
+		pred = [H[n]]
+		result[0] = result[0] -1
+	else : 
+		l = r.sample(set(range(len(V))),2)
+		result.append([V[l[0]][0],V[l[1]][0]])
+		del(V1[l[0]])
+		if(l[0]<l[1]):
+			del(V1[l[1]-1])
+		else:
+			del(V1[l[1]])
+		pred = [V[l[0]],V[l[1]]]
+	V2 = []
 	
-		
-	  
+	for i in range(len(V)/2-1):
+		l = r.sample(set(range(len(V1))),2)
+		V2.append([V1[l[0]],V1[l[1]]])
+		del(V1[l[0]])
+		if(l[0]<l[1]):
+			del(V1[l[1]-1])
+		else:
+			del(V1[l[1]])
+
+	while(len(H1)>0 or len(V2)>0):
+		H = False
+		compteur=0
+		for i in range(len(H1)):
+			if(evalCouple([H1[i-compteur]],pred)>0):
+				pred = [H1[i-compteur]]
+				H=True
+				result.append([H1[i-compteur][0]])
+				del(H1[i-compteur])
+				compteur=compteur+1
+		if(not H):
+			for i in range(len(V2)):
+				if(evalCouple(V2[i],pred)>0):
+	  				pred = V2[i]
+					result.append([V2[i][0][0],V2[i][1][0]])
+					H=True
+					del(V2[i])
+					break
+		if(not H):
+			if(len(V2)>0 and len(H1)>0):
+				HouV=HouV = r.randint(1,2)
+			elif(len(V2)>0):
+				HouV = 2
+			else:
+				Houv = 1
+			if(HouV == 1):
+				n=r.randint(0,len(H1)-1)
+				result.append([H1[n][0]])
+				pred = [H1[n]]				
+				del(H1[n])
+			else:
+				n=r.randint(0,len(V2)-1)
+				result.append([V2[n][0][0],V2[n][1][0]])
+				pred = V2[n]				
+				del(V2[n])
+
+	return result
 
 
 filename = "c_memorable_moments.txt"
-nb = 70
+nb = 100
 data = lecture_fichier(filename,nb)
 H,V = separerH_V(data)
-result = glouton(H,V)
+
+result = glouton2(H,V)
 print(evaluation2(filename,result,nb))
+print(evaluation(data,result,nb))
 
