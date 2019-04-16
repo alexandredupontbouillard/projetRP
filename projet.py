@@ -240,6 +240,75 @@ def glouton2(H,V):
 				del(V2[n])
 
 	return result
+def descente_stochastique(data, result):
+    n = len(result)
+    maxi = evaluation(data, result)
+    HouV = r.randint(1, 2)
+    print("max", maxi)
+    modif = True
+    while(modif):
+        modif = False
+        for i in range(1, n-1):
+            result_local = copy.deepcopy(result)
+            if (len(result_local[i]) == 2 and len(result_local[i+1]) == 2):
+                if (r.random() < 0.5):
+                    v1 = r.randint(0, 1)
+                    v2 = r.randint(0, 1)
+                    result_local[i][v1], result_local[i+1][v2] = result_local[i+1][v2], result_local[i][v1]
+                else:
+                    result_local[i],result_local[i+1] = result_local[i+1], result_local[i]
+            else:
+                result_local[i], result_local[i+1] = result_local[i+1],result_local[i]
+            maxi_local = evaluation(data, result_local)
+            if (maxi_local > maxi):
+                print("max_local",maxi_local)
+                modif = True
+                maxi = maxi_local
+                result = result_local
+    print("fin")
+    print(evaluation(data, result))
+    print(result)
+
+def evalCouple2(r1, r2,data):
+    if(len(r1)==2 and len(r2)==2):
+        return evalCouple([data[r1[0]],data[r1[1]]],[data[r2[0]],data[r2[1]]])
+    if (len(r1) == 2):
+        return evalCouple([data[r1[0]], data[r1[1]]], [data[r2[0]]])
+    if(len(r2)==2):
+        return evalCouple([data[r1[0]], data[r2[0]]], [data[r2[1]]])
+    return evalCouple([data[r1[0]]],[data[r2[0]]])
+
+def descente_stochastique2(data, result,NB):
+    n = len(result)
+    maxi = evaluation(data, result)
+    HouV = r.randint(1, 2)
+    print("max", maxi)
+    modif = True
+    maxTransi = 0
+    maxPosition = -1
+    while(modif):
+        modif = False
+        for i in range(n-1,2,-1):
+            result_local = copy.deepcopy(result)
+            maxTransi = evalCouple2(result[i],result[i-1],data)
+            maxPosition = -1
+            for k in range(NB):
+                j = r.randint(1,i-1)
+                maxTlocal = evalCouple2(result_local[i],result_local[j],data)
+                if(maxTlocal>maxTransi):
+                    maxTransi = maxTlocal
+                    maxPosition = j
+            if(maxPosition != -1):
+                result_local[i-1],result_local[maxPosition] = result_local[maxPosition],result_local[i-1]
+                maxi_local = evaluation(data, result_local)
+                if (maxi_local > maxi):
+                    print("max_local2",maxi_local)
+                    modif = True
+                    maxi = maxi_local
+                    result = result_local
+    print("fin")
+    print(evaluation(data, result))
+    print(result)
 
 
 filename = "c_memorable_moments.txt"
