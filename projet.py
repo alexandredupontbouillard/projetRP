@@ -7,14 +7,15 @@ Created on Wed Apr 10 21:30:21 2019
 
 import numpy as np
 import os
-import commands;
+#import commands
 import random as r
 import copy
+#from guroby import *
 #lis le fichier basiquement
 def lecture_fichier(filename,nb):
     data = np.loadtxt ( filename, delimiter='\n', dtype=np.str )
     result=[]
-    for i in range (1,len(data)*nb/100):
+    for i in range (1,int(len(data)*nb/100)):
         ligne = data[i].split(" ")
         ligne = [i-1]+[ligne[0]]+ligne[2:]
         result.append(ligne)
@@ -216,7 +217,7 @@ def glouton2(H,V):
 		if(not H):
 			for i in range(len(V2)):
 				if(evalCouple(V2[i],pred)>0):
-	  				pred = V2[i]
+					pred = V2[i]
 					result.append([V2[i][0][0],V2[i][1][0]])
 					H=True
 					del(V2[i])
@@ -243,7 +244,6 @@ def glouton2(H,V):
 def descente_stochastique(data, result):
     n = len(result)
     maxi = evaluation(data, result)
-    HouV = r.randint(1, 2)
     print("max", maxi)
     modif = True
     while(modif):
@@ -281,7 +281,6 @@ def evalCouple2(r1, r2,data):
 def descente_stochastique2(data, result,NB):
     n = len(result)
     maxi = evaluation(data, result)
-    HouV = r.randint(1, 2)
     print("max", maxi)
     modif = True
     maxTransi = 0
@@ -310,13 +309,41 @@ def descente_stochastique2(data, result,NB):
     print(evaluation(data, result))
     print(result)
 
+def pl(H):
+	nbImage = len(H)
+	contraintes = []
+	#for i in range(nbImage):
+	#	c=[]
+	#	print(i)
+	#	for j in range(nbImage*i):
+	#		c.append(0)
+	#	for j in range(nbImage):
+	#		if(j==i):
+	#			c.append(0)
+	#		else:
+	#			c.append(1)
+	#	for j in range(nbImage * (i+1),nbImage*nbImage ):
+	#		c.append(0)
+	#	contraintes.append(c)
+	#for j in range(nbImage):
+	#	c=[]
+	#	print(j)
+	#	for i in range(nbImage):
+	#		for w in range(j):
+	#			c.append(0)
+	#		c.append(1)
+	#		for w in range(nbImage-j-1):
+	#			c.append(0)
+	#	contraintes.append(c)
 
-filename = "c_memorable_moments.txt"
-nb = 100
+	return contraintes
+
+filename = "b_lovely_landscapes.txt"
+nb = 0.1
 data = lecture_fichier(filename,nb)
 H,V = separerH_V(data)
 
-result = glouton2(H,V)
-print(evaluation2(filename,result,nb))
-print(evaluation(data,result,nb))
+result = pl(H)
+#print(evaluation2(filename,result,nb))
+#print(evaluation(data,result,nb))
 
