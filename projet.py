@@ -10,7 +10,7 @@ import os
 #import commands
 import random as r
 import copy
-#from guroby import *
+import gurobipy
 #lis le fichier basiquement
 def lecture_fichier(filename,nb):
     data = np.loadtxt ( filename, delimiter='\n', dtype=np.str )
@@ -338,12 +338,74 @@ def pl(H):
 
 	return contraintes
 
+
+def pl_2(H,data):
+    m = gurobipy.Model("MyModel")
+    V = len(H)
+    x = []
+    z = []
+    
+    for i in range(V):
+        x2 = []
+        for j in range(V):
+            x2.append(m.addVar(vtype = gurobipy.GRB.CONTINUOUS, name = "x%d%d"%(i,j)))
+        x.append(x2)
+    for i in range(V):
+        z2 = []
+        for j in range(V):
+            z2.append(m.addVar(vtype = gurobipy.GRB.CONTINUOUS, name = "z%d%x"%(i,j)))
+        z.append(z2)
+    m.update()
+    
+    obj = gurobipy.LinExpr();
+    obj = 0
+    #Fonction objectif
+    for i in range(V):
+        for j in range(V):
+            obj += evalCouple2(H[i],H[j],data) * x[i][j]
+    m.setObjective(obj,gurobipy.GRB.MAXIMIZE)
+    
+    #1 arete sortante par sommet
+    for j in range(V):
+        m.addConstr(gurobipy.quicksum(x[i][j] for i in range(V))==1)
+    #1 arete entrante par sommet
+    for i in range(V):
+        m.addConstr(gurobipy.quicksum(x[i][j] for j in range(V))==1)
+    #pas d'arete sur un meme sommet
+    for i in range(V):
+        m.addConstr(x[i][i]==0)
+    #pas d'arete de a vers b et de b vers a simultanes
+    for i in range(V):
+        for j in range(V):
+            m.addConstr(x[i][j]+x[j][i]<=1)
+            
+    #Contraintes de flots
+    #1
+    for j in range(1,V):
+        m.addConstr(z[0][j] == (V-1))
+    #2
+    for i in range(1,V):
+        m.addConstr( (gurobipy.quicksum(z[i][j] for j in range(1,V) if j != i)+1) == (gurobipy.quicksum(z[j][i] for j in range(V) if j!=i)) )
+    #3
+    for i in range(V):
+        list_j = [j for j in range(1,V) if j != i]
+        for j in list_j:
+            m.addConstr((z[i][j]+z[j][i]) <= (V-1)*(x[i][j]+x[j][i]))
+    #4
+    for i in range(V):
+        list_j = [j for j in range(1,V) if j != i]
+        for j in list_j:
+            m.addConstr(z[i][j]>=0)
+    #Resolution
+    m.optimize()
+    return 1
+
 filename = "b_lovely_landscapes.txt"
 nb = 0.1
 data = lecture_fichier(filename,nb)
 H,V = separerH_V(data)
 
-result = pl(H)
+pl_2(H,data)
 #print(evaluation2(filename,result,nb))
 #print(evaluation(data,result,nb))
 
