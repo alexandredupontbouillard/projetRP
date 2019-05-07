@@ -339,7 +339,7 @@ def pl(H):
 	return contraintes
 
 
-def pl_2(H,data):
+def pl_binary(H,data):
     m = gurobipy.Model("MyModel")
     V = len(H)
     x = []
@@ -348,7 +348,7 @@ def pl_2(H,data):
     for i in range(V):
         x2 = []
         for j in range(V):
-            x2.append(m.addVar(vtype = gurobipy.GRB.CONTINUOUS, name = "x%d%d"%(i,j)))
+            x2.append(m.addVar(vtype = gurobipy.GRB.BINARY, name = "x%d%d"%(i,j)))
         x.append(x2)
     for i in range(V):
         z2 = []
@@ -381,8 +381,7 @@ def pl_2(H,data):
             
     #Contraintes de flots
     #1
-    for j in range(1,V):
-        m.addConstr(z[0][j] == (V-1))
+    m.addConstr(gurobipy.quicksum(z[0][j] for j in range(1,V)) == V-1)
     #2
     for i in range(1,V):
         m.addConstr( (gurobipy.quicksum(z[i][j] for j in range(1,V) if j != i)+1) == (gurobipy.quicksum(z[j][i] for j in range(V) if j!=i)) )
@@ -399,12 +398,14 @@ def pl_2(H,data):
     #Resolution
     m.optimize()
     return 1
-
+    
 filename = "b_lovely_landscapes.txt"
-nb = 0.1
+nb = 0.3
 data = lecture_fichier(filename,nb)
 H,V = separerH_V(data)
 
+result = glouton(H,V)
+print(evaluation(data,result,nb))
 pl_2(H,data)
 #print(evaluation2(filename,result,nb))
 #print(evaluation(data,result,nb))
