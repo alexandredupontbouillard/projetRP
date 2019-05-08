@@ -108,8 +108,6 @@ def glouton(H,V):
             n=r.randint(0,len(H)-1)
         else:
             n=0
-        print(len(H))
-        print(n)
         result.append([H[n][0]])
         del(H1[n])
         pred = [H[n]]
@@ -525,7 +523,11 @@ def convertir_list(sub_lists,data):
     for l in sub_lists:
         sub_data = []
         for picture in l:
-            sub_data.append((data[picture[0]]))
+            if(len(picture)==2):
+                sub_data.append(data[picture[0]])
+                sub_data.append(data[picture[1]])
+            else:
+                sub_data.append(data[picture[0]])
         sub_lists2.append(sub_data)
     return sub_lists2
 
@@ -533,10 +535,7 @@ def apply_greedy_all(sub_lists):
     sub_lists2 = []
     for l in sub_lists:
         H,V = separerH_V(l)
-        print(len(H))
-        print("V")
-        print(len(V))
-        result = glouton2(H,V)
+        result = glouton(H,V)
         result.pop(0)
         sub_lists2.append(result)
     return sub_lists2
@@ -553,7 +552,6 @@ def ordonnancement(sub_lists,data):
             if(k>max_transi):
                 max_transi = k
                 max_position = j
-                print("Changement")
         result.append(sub_lists.pop(max_position))
     result = [photo for souslist in result for photo in souslist]
     result.insert(0,len(result))
@@ -881,10 +879,9 @@ def comparaison_des_methodes(data,timeout):
     
 
 filename = "c_memorable_moments.txt"
-nb = 10
+nb = 99
 data = lecture_fichier(filename,nb)
 H,V = separerH_V(data)
 result = glouton2(H,V)
-notre_methode(H,V,5,data,np)
-#print(comparaison_des_methodes(data,20))
+notre_methode(H,V,100,data,np)
 
