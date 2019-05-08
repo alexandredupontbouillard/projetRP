@@ -62,6 +62,7 @@ def transfo(result):
         fichier.write("\n")
     fichier.close()
 
+#fonction d'evaluation
 def evaluation(data,result,nb):
     score=0    
     for i in range(1,len(result)-1):
@@ -69,6 +70,15 @@ def evaluation(data,result,nb):
         d2 = [ data[j] for j in result[i+1]]
         score = score + evalCouple(d1,d2)
     return score
+
+def evaluation2(fichier,result,proportion):
+    transfo(result)
+    t=commands.getoutput("./Checker "+fichier+" "+str(proportion)+" result.txt")
+    i = 0    
+    while(t[i] != "="):
+        i=i+1
+    return int(t[i+2:])
+
 # prend en paramètre un couple de diapo exemple : [[8,H,rfe,ef]],[[5,V,er,tgr,ef],[6,V,erg,ferf,erf]]
 def evalCouple(l1,l2):
     if(len(l1)==1):
@@ -80,21 +90,22 @@ def evalCouple(l1,l2):
     else:
         s2 = set(l2[0][2:] + l2[1][2:])
     cardinal_intersect=len(s1.intersection(s2))
-
-    
     return min([cardinal_intersect,len(s1) - cardinal_intersect,len(s2) - cardinal_intersect])
 
+#Fonction d'evaluation de couple avec en parametres la position dans les donnees de depart
+def evalCouple2(r1, r2,data):
+    if(len(r1)==2 and len(r2)==2):
+        return evalCouple([data[r1[0]],data[r1[1]]],[data[r2[0]],data[r2[1]]])
+    if (len(r1) == 2):
+        return evalCouple([data[r1[0]], data[r1[1]]], [data[r2[0]]])
+    if(len(r2)==2):
+        return evalCouple([data[r1[0]], data[r2[0]]], [data[r2[1]]])
+    return evalCouple([data[r1[0]]],[data[r2[0]]])
 
-def evaluation2(fichier,result,proportion):
-    transfo(result)
-    t=commands.getoutput("./Checker "+fichier+" "+str(proportion)+" result.txt")
-    i = 0    
-    while(t[i] != "="):
-        i=i+1
-    return int(t[i+2:])
-  
+  #Algorithme glouton du sujet
 def glouton(H,V):
     taille = len(H)+len(V)/2
+  
     H1 = copy.deepcopy(H)
     V1 =     copy.deepcopy(V)
     HouV=1
@@ -176,7 +187,7 @@ def glouton(H,V):
         result.append([V[0][0]])
     return result
 
-#on fait des couples aléatoires d'image verticales puis on ajoute au fur et à mesure les images
+#Notre algo glouton: on fait des couples aléatoires d'image verticales puis on ajoute au fur et à mesure les images
 def glouton2(H,V):
     taille = len(H)+len(V)/2 
     H1 = copy.deepcopy(H)
@@ -261,6 +272,8 @@ def glouton2(H,V):
                 del(V2[n])
 
     return result
+
+#Amelioration du resultat via descente stochastique de l'enonce
 def descente_stochastique(data, result,nb):
     n = len(result)
     maxi = evaluation(data, result,nb)
@@ -285,15 +298,7 @@ def descente_stochastique(data, result,nb):
                 result = result_local
     return result
 
-def evalCouple2(r1, r2,data):
-    if(len(r1)==2 and len(r2)==2):
-        return evalCouple([data[r1[0]],data[r1[1]]],[data[r2[0]],data[r2[1]]])
-    if (len(r1) == 2):
-        return evalCouple([data[r1[0]], data[r1[1]]], [data[r2[0]]])
-    if(len(r2)==2):
-        return evalCouple([data[r1[0]], data[r2[0]]], [data[r2[1]]])
-    return evalCouple([data[r1[0]]],[data[r2[0]]])
-
+#Notre algo de descente: Pour chaque noeud, choisit NB noeuds au hasard puis prend le meilleur noeud comme voisin
 def descente_stochastique2(data, result,NB):
     n = len(result)
     maxi = evaluation(data, result,NB)
@@ -321,6 +326,7 @@ def descente_stochastique2(data, result,NB):
                     result = result_local
     return result
 
+#Programme lineaire avec nombre entiers
 def pl_binary(H,data):
     m = gurobipy.Model("MyModel")
     V = len(H)
@@ -389,7 +395,7 @@ def pl_binary(H,data):
     result1 = transfoPl(result)[0]
     result1.insert(0,len(result1))
     return result1
-
+#Transformation du resultat du pl en solution du probleme
 def transfoPl(lCouple):
     if(len(lCouple) ==1):
         return lCouple
@@ -427,6 +433,7 @@ def deepTransfoPl(lCouple):
         else:
             return lCouple
 
+#Algorithme de PL arrondi de l'enonce
 def heuristique_arrondi(H,data):
     m = gurobipy.Model("MyModel")
     V = len(H)
@@ -514,10 +521,13 @@ def heuristique_arrondi(H,data):
     result.insert(0,len(result))
     return result
 
+#Algorithme arrondi avec descente stochastique
 def heuristique_arrondi2(H,data ,NB):
     result = heuristique_arrondi(H,data)
     return descente_stochastique(data, result,NB)
 
+#Toutes les fonctions suivantes sont utilisees pour notre methode dans la fonction notre_methode
+#Conversion en donnees traitables
 def convertir_list(sub_lists,data):
     sub_lists2 = []
     for l in sub_lists:
@@ -531,6 +541,7 @@ def convertir_list(sub_lists,data):
         sub_lists2.append(sub_data)
     return sub_lists2
 
+#Trouver une solution pour chaque sous-ensemble
 def apply_greedy_all(sub_lists):
     sub_lists2 = []
     for l in sub_lists:
@@ -540,6 +551,7 @@ def apply_greedy_all(sub_lists):
         sub_lists2.append(result)
     return sub_lists2
 
+#Ordonner les differents sous-ensembles en un resultat
 def ordonnancement(sub_lists,data):
     result = []
     result.append(sub_lists.pop(0))
@@ -557,17 +569,22 @@ def ordonnancement(sub_lists,data):
     result.insert(0,len(result))
     return result
         
-
+#Calcule une solution rapidement dans old_result, puis decompose le resultat en sous-ensembles de longueurs len_slice
+#On calcule ensuite pour chaque sous-ensemble un meilleur resultat
 def notre_methode(H,V,len_slice,data,nb):
-    old_result = glouton2(H,V)
-    print("Evaluation avant:" + str(evaluation(data,old_result,nb)))
+    old_result = glouton2(H,V) #Solution de depart
     old_result.pop(0)
+    #Decomposition en sous-ensembles de taille len_slice
     sub_lists = [old_result[i:i+len_slice] for i in range(0,len(old_result),len_slice)]
+    #Conversion des sous-ensembles en donnees traitables par nos algorithmes
     sub_lists = convertir_list(sub_lists,data)
+    #Appliquation d'un meilleur algorithme pour chaque sous-ensemble
     sub_lists = apply_greedy_all(sub_lists)
+    #Ordonne les sous-ensembles dans un ensemble en fonction des meilleurs transitions entre sous-ensemble
     result = ordonnancement(sub_lists,data)
-    print("Evaluation apres:" + str(evaluation(data,result,nb)))
+    return result
     
+#Comparaison photos horizontales
 def comparaison_des_methodes_H(data,timeout,pl = False):
     result = []
     taille = len(data)
@@ -590,6 +607,8 @@ def comparaison_des_methodes_H(data,timeout,pl = False):
         if(time > timeout):
             for j in range(int((110- i)/10)  -1):
                 vec.append("TIMEOUT")
+                H,V = separerH_V(data[ : int(len(data)*(i+j+1)/100) ])
+                HList.append([H,V])
             break
     result.append(vec)
 
@@ -597,7 +616,7 @@ def comparaison_des_methodes_H(data,timeout,pl = False):
     vec=[]
     vec.append("glouton1 + stoch1")
     print("glouton1 + stoch1")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = glouton(HList[i],[])
         r = descente_stochastique(data,r,i*10)
@@ -615,7 +634,7 @@ def comparaison_des_methodes_H(data,timeout,pl = False):
     vec=[]
     vec.append("glouton1 + stoch2")
     print("glouton1 + stoch2")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = glouton(HList[i],[])
         r = descente_stochastique2(data,r,i*10)
@@ -633,7 +652,7 @@ def comparaison_des_methodes_H(data,timeout,pl = False):
     vec=[]
     vec.append("glouton2")
     print("glouton2")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = glouton2(HList[i],[])
         t2 = t.time()
@@ -650,7 +669,7 @@ def comparaison_des_methodes_H(data,timeout,pl = False):
     vec=[]
     vec.append("glouton2 + stoch1")
     print("glouton2 + stoch1")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = glouton2(HList[i],[])
         r = descente_stochastique(data,r,i*10)
@@ -668,7 +687,7 @@ def comparaison_des_methodes_H(data,timeout,pl = False):
     vec=[]
     vec.append("glouton2 + stoch2")
     print("glouton2 + stoch2")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = glouton2(HList[i],[])
         r = descente_stochastique2(data,r,i*10)
@@ -686,7 +705,7 @@ def comparaison_des_methodes_H(data,timeout,pl = False):
         vec=[]
         vec.append("pl")
         print("pl")
-        for i in range(len(HList)):
+        for i in range(10):
             t1 = t.time()
             r = pl_binary(HList[i],data)
             t2 = t.time()
@@ -703,7 +722,7 @@ def comparaison_des_methodes_H(data,timeout,pl = False):
     vec=[]
     vec.append("Heuristique")
     print("Heuristique")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = heuristique_arrondi(HList[i],data)
         t2 = t.time()
@@ -720,7 +739,7 @@ def comparaison_des_methodes_H(data,timeout,pl = False):
     vec=[]
     vec.append("Heuristique + stoch 1")
     print("Heuristique + stoch 1")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = heuristique_arrondi2(HList[i],data, i *10)
         t2 = t.time()
@@ -737,7 +756,7 @@ def comparaison_des_methodes_H(data,timeout,pl = False):
     vec=[]
     vec.append("Heuristique + stoch 2")
     print("Heuristique + stoch 2")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = heuristique_arrondi(HList[i],data)
         r = descente_stochastique2(data,r,i*10)
@@ -752,11 +771,61 @@ def comparaison_des_methodes_H(data,timeout,pl = False):
             break
     result.append(vec)
     
+    
+    vec=[]
+    vec.append("notre methode 100")
+    print("notre methode 100")
+    for i in range(10):
+        t1 = t.time()
+        r = notre_methode(HList[i],[],100,data,i*10)
+        t2 = t.time()
+        time = t2-t1
+        vec.append([time,evaluation(data,r,i*10)])
+    
         
+        if(time > timeout):
+            for j in range(10- i):
+                vec.append("TIMEOUT")
+            break
+    result.append(vec)
+    
+    vec=[]
+    vec.append("notre methode 200")
+    print("notre methode 200")
+    for i in range(10):
+        t1 = t.time()
+        r = notre_methode(HList[i],[],200,data,i*10)
+        t2 = t.time()
+        time = t2-t1
+        vec.append([time,evaluation(data,r,i*10)])
+    
+        
+        if(time > timeout):
+            for j in range(10- i):
+                vec.append("TIMEOUT")
+            break
+    result.append(vec)
+    
+    vec=[]
+    vec.append("notre methode 500")
+    print("notre methode 500")
+    for i in range(10):
+        t1 = t.time()
+        r = notre_methode(HList[i],[],500,data,i*10)
+        t2 = t.time()
+        time = t2-t1
+        vec.append([time,evaluation(data,r,i*10)])
+    
+        
+        if(time > timeout):
+            for j in range(10- i):
+                vec.append("TIMEOUT")
+            break
+    result.append(vec)
     return result
 
 
-
+#Comparaison photos 
 def comparaison_des_methodes(data,timeout):
     result = []
     taille = len(data)
@@ -779,14 +848,15 @@ def comparaison_des_methodes(data,timeout):
         if(time > timeout):
             for j in range(int((110- i)/10)  -1):
                 vec.append("TIMEOUT")
+                H,V = separerH_V(data[ : int(len(data)*(i+j+1)/100) ])
+                HList.append([H,V])
             break
     result.append(vec)
-
 
     vec=[]
     vec.append("glouton1 + stoch1")
     print("glouton1 + stoch1")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = glouton(HList[i][0],HList[i][1])
         r = descente_stochastique(data,r,i*10)
@@ -804,7 +874,7 @@ def comparaison_des_methodes(data,timeout):
     vec=[]
     vec.append("glouton1 + stoch2")
     print("glouton1 + stoch2")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = glouton(HList[i][0],HList[i][1])
         r = descente_stochastique2(data,r,i*10)
@@ -822,7 +892,7 @@ def comparaison_des_methodes(data,timeout):
     vec=[]
     vec.append("glouton2")
     print("glouton2")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = glouton2(HList[i][0],HList[i][1])
         t2 = t.time()
@@ -839,7 +909,7 @@ def comparaison_des_methodes(data,timeout):
     vec=[]
     vec.append("glouton2 + stoch1")
     print("glouton2 + stoch1")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = glouton2(HList[i][0],HList[i][1])
         r = descente_stochastique(data,r,i*10)
@@ -857,7 +927,7 @@ def comparaison_des_methodes(data,timeout):
     vec=[]
     vec.append("glouton2 + stoch2")
     print("glouton2 + stoch2")
-    for i in range(len(HList)):
+    for i in range(10):
         t1 = t.time()
         r = glouton2(HList[i][0],HList[i][1])
         r = descente_stochastique2(data,r,i*10)
@@ -872,16 +942,84 @@ def comparaison_des_methodes(data,timeout):
             break
     result.append(vec)
     
-        
-    return result
-   
     
+    vec=[]
+    vec.append("notre methode 100")
+    print("notre methode 100")
+    for i in range(10):
+        t1 = t.time()
+        r = notre_methode(HList[i][0],HList[i][1],100,data,i*10)
+        t2 = t.time()
+        time = t2-t1
+        vec.append([time,evaluation(data,r,i*10)])
+    
+        
+        if(time > timeout):
+            for j in range(10- i):
+                vec.append("TIMEOUT")
+            break
+    result.append(vec)
+    
+    vec=[]
+    vec.append("notre methode 200")
+    print("notre methode 200")
+    for i in range(10):
+        t1 = t.time()
+        r = notre_methode(HList[i][0],HList[i][1],200,data,i*10)
+        t2 = t.time()
+        time = t2-t1
+        vec.append([time,evaluation(data,r,i*10)])
+    
+        
+        if(time > timeout):
+            for j in range(10- i):
+                vec.append("TIMEOUT")
+            break
+    result.append(vec)
+    
+    vec=[]
+    vec.append("notre methode 500")
+    print("notre methode 500")
+    for i in range(10):
+        t1 = t.time()
+        r = notre_methode(HList[i][0],HList[i][1],500,data,i*10)
+        t2 = t.time()
+        time = t2-t1
+        vec.append([time,evaluation(data,r,i*10)])
+    
+        
+        if(time > timeout):
+            for j in range(10- i):
+                vec.append("TIMEOUT")
+            break
+    result.append(vec)
+        
+    
+    return result
+
+#Ecriture des comparaisons sous forme de tableau
+def writeTableau(T):
+    fichier = open("tableau_result.csv", "w")
+    fichier.write("methode;")
+    for i in T[0]:
+        fichier.write( str(i) + ";" )
+    fichier.write("\n")
+    for i in range(1,len(T)) :
+        fichier.write( T[i][0] +  ";")
+        for j in range(1,len(T[i])):
+            if(T[i][j] != "TIMEOUT"):
+                fichier.write(str( [round(T[i][j][0],3),T[i][j][1]] ) + ";")
+            else:
+                fichier.write("TIMEOUT;")
+        fichier.write("\n")
+            
+    
+    fichier.close()
     
 
-filename = "c_memorable_moments.txt"
-nb = 99
+filename = "b_lovely_landscapes.txt"
+nb = 100
 data = lecture_fichier(filename,nb)
-H,V = separerH_V(data)
-result = glouton2(H,V)
-notre_methode(H,V,100,data,np)
+#result = comparaison_des_methodes(data,20)
+#writeTableau(result)
 
